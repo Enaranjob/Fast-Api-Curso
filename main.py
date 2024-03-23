@@ -7,19 +7,18 @@ from fastapi.security import HTTPBearer
 from config.database import Session, engine, Base
 from model.movie import Movie as MoviModel
 from fastapi.encoders import jsonable_encoder
+from middlewares.error_handler import ErrorHandler
+from middlewares.jwt_beader import JWTBearer
 
 app = FastAPI()
 app.title = "Mi aplicación con  FastAPI"
 app.version = "0.0.1"
 
+app.add_middleware(ErrorHandler)
+
 Base.metadata.create_all(bind=engine)
 
-class JWTBearer(HTTPBearer):
-    async def __call__(self, request: Request):
-        auth = await super().__call__(request)
-        data = validate_token(auth.credentials)
-        if data['email'] != "admin@gmail.com":
-            raise HTTPException(status_code=403, detail="Credenciales son invalidas")
+
 
 class User(BaseModel):
     email:str
@@ -126,6 +125,7 @@ def delete_movie(id: int)-> dict:
     db.delete(result)
     db.commit()
     return JSONResponse(status_code=200, content={"message": "Se ha eliminado la película"})
+
         
         
        
